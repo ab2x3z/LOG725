@@ -29,7 +29,7 @@ namespace KartGame.UI
         {
             float speed = KartController.Rigidbody.velocity.magnitude;
             Speed.text = string.Format($"{Mathf.FloorToInt(speed * 3.6f)} km/h");
-            Speed.text += string.Format($"\n{speed:0.0} m/s");
+            //Speed.text += string.Format($"\n{speed:0.0} m/s");
         }
     }
 }
