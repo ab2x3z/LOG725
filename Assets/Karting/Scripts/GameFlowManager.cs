@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.Playables;
 using KartGame.KartSystems;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public enum GameState{Play, Won, Lost}
 
@@ -35,6 +36,8 @@ public class GameFlowManager : MonoBehaviour
     [Tooltip("Prefab for the lose game message")]
     public DisplayMessage loseDisplayMessage;
 
+
+    [SerializeField] Toggle audioToggle;
 
     public GameState gameState { get; private set; }
 

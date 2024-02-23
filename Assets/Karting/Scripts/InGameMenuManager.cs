@@ -38,7 +38,7 @@ public class InGameMenuManager : MonoBehaviour
 
     private void Update()
     {
-        
+
         if (Input.GetButtonDown(GameConstants.k_ButtonNamePauseMenu)
             || (menuRoot.activeSelf && Input.GetButtonDown(GameConstants.k_ButtonNameCancel)))
         {
@@ -47,7 +47,6 @@ public class InGameMenuManager : MonoBehaviour
                 controlImage.SetActive(false);
                 return;
             }
-
             SetPauseMenuActivation(!menuRoot.activeSelf);
 
         }
@@ -60,6 +59,8 @@ public class InGameMenuManager : MonoBehaviour
                 shadowsToggle.Select();
             }
         }
+        Debug.Log("update: " + menuRoot.activeSelf);
+
     }
 
     public void ClosePauseMenu()
@@ -68,11 +69,16 @@ public class InGameMenuManager : MonoBehaviour
     }
 
 
+    public void toggleBtnSettngs()
+    {
+        SetPauseMenuActivation(!menuRoot.activeSelf);
+    }
+
     public void TogglePauseMenu()
     {
         SetPauseMenuActivation(!menuRoot.activeSelf);
     }
-    void SetPauseMenuActivation(bool active)
+    public void SetPauseMenuActivation(bool active)
     {
         menuRoot.SetActive(active);
 
