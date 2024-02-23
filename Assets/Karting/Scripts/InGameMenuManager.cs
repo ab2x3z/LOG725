@@ -59,7 +59,6 @@ public class InGameMenuManager : MonoBehaviour
                 shadowsToggle.Select();
             }
         }
-        Debug.Log("update: " + menuRoot.activeSelf);
 
     }
 
