@@ -65,6 +65,8 @@ namespace KartGame.AI
         public float HitPenalty = -1f;
         [Tooltip("How much reward is given when the agent successfully passes the checkpoints?")]
         public float PassCheckpointReward;
+        [Tooltip("How much penalty is given when the agent passes a wrong checkpoint?")]
+        public float FailCheckpointPenalty;
         [Tooltip("Should typically be a small value, but we reward the agent for moving in the right direction.")]
         public float TowardsCheckpointReward;
         [Tooltip("Typically if the agent moves faster, we want to reward it for finishing the track quickly.")]
@@ -159,6 +161,9 @@ namespace KartGame.AI
             {
                 AddReward(PassCheckpointReward);
                 m_CheckpointIndex = index;
+            } else if (triggered > 0 && index <= m_CheckpointIndex || index == Colliders.Length - 1 && m_CheckpointIndex == 0)
+            {
+                AddReward(FailCheckpointPenalty);
             }
         }
 

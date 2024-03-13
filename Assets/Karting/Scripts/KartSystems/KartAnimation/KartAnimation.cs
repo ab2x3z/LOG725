@@ -62,27 +62,42 @@ namespace KartGame.KartSystems
             frontLeftWheel.wheelCollider.steerAngle = rotationAngle;
             frontRightWheel.wheelCollider.steerAngle = rotationAngle;
 
-            // Update position and rotation from WheelCollider
-            UpdateWheelFromCollider(frontLeftWheel);
+            // Dans FixedUpdate et LateUpdate
+            UpdateWheelFromCollider(frontLeftWheel, true);  // true pour isLeftWheel
             UpdateWheelFromCollider(frontRightWheel);
-            UpdateWheelFromCollider(rearLeftWheel);
+            UpdateWheelFromCollider(rearLeftWheel, true);   // true pour isLeftWheel
             UpdateWheelFromCollider(rearRightWheel);
+
         }
 
         void LateUpdate()
         {
-            // Update position and rotation from WheelCollider
-            UpdateWheelFromCollider(frontLeftWheel);
+            // Dans FixedUpdate et LateUpdate
+            UpdateWheelFromCollider(frontLeftWheel, true);  // true pour isLeftWheel
             UpdateWheelFromCollider(frontRightWheel);
-            UpdateWheelFromCollider(rearLeftWheel);
+            UpdateWheelFromCollider(rearLeftWheel, true);   // true pour isLeftWheel
             UpdateWheelFromCollider(rearRightWheel);
+
         }
 
-        void UpdateWheelFromCollider(Wheel wheel)
+        void UpdateWheelFromCollider(Wheel wheel, bool isLeftWheel = false)
         {
             wheel.wheelCollider.GetWorldPose(out Vector3 position, out Quaternion rotation);
-            wheel.wheelTransform.position = position;
-            wheel.wheelTransform.rotation = rotation;
+
+            if (isLeftWheel)
+            {
+                // Compenser pour les roues de gauche
+                wheel.wheelTransform.position = position;
+                // Applique la rotation originale plus une compensation de 180 degrés autour de l'axe vertical (Y) si nécessaire
+                wheel.wheelTransform.rotation = rotation * Quaternion.Euler(0, 180f, 0);
+            }
+            else
+            {
+                // Pas de compensation nécessaire pour les roues de droite
+                wheel.wheelTransform.position = position;
+                wheel.wheelTransform.rotation = rotation;
+            }
         }
+
     }
 }
