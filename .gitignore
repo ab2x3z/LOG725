@@ -142,3 +142,7 @@ PackageBackups/
 
 # UWP builds
 /UWP/*
+
+
+
+results/*
