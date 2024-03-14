@@ -2652,7 +2652,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   screenshotPanel: {fileID: 5510144977734701555}
   fileName: Screenshot
-  previewImage: {fileID: 1316288227226849327}
 --- !u!1 &8824232397423385169
 GameObject:
   m_ObjectHideFlags: 0
@@ -2672,7 +2671,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &8824232397423385168
 RectTransform:
   m_ObjectHideFlags: 0
