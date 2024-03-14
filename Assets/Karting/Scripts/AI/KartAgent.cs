@@ -198,7 +198,7 @@ namespace KartGame.AI
             sensor.AddObservation(m_Kart.LocalSpeed());
 
             // Add an observation for direction of the agent to the next checkpoint.
-            var next = (m_CheckpointIndex + 1) % Colliders.Length;
+            var next = (Colliders.Length != 0) ? (m_CheckpointIndex + 1) % Colliders.Length : 0;
             var nextCollider = Colliders[next];
             if (nextCollider == null)
                 return;
