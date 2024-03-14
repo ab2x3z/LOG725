@@ -5,9 +5,6 @@ using UnityEngine;
 /// </summary>
 public class LapCheckpoint : TargetObject
 {
-    [HideInInspector]
-    public bool isTriggered;
-    
     void Start() {
         Register();
     }
