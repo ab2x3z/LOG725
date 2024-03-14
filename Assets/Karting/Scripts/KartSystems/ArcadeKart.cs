@@ -2,6 +2,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.VFX;
+using Cinemachine;
 
 namespace KartGame.KartSystems
 {
@@ -70,6 +71,7 @@ namespace KartGame.KartSystems
                 };
             }
         }
+
 
         public Rigidbody Rigidbody { get; private set; }
         public InputData Input     { get; private set; }
@@ -397,7 +399,18 @@ namespace KartGame.KartSystems
             }
         }
 
-        void OnCollisionEnter(Collision collision) => m_HasCollision = true;
+        void OnCollisionEnter(Collision collision)
+        {
+            m_HasCollision = true;
+            if (collision.gameObject.GetComponent<ArcadeKart>() != null && collision.gameObject.tag == "Player" )
+            {
+                ArcadeKart player = collision.gameObject.GetComponent<ArcadeKart>();
+                //shake the camera proportionally to the speed of the collision
+                float shakeForce = player.Rigidbody.velocity.magnitude / player.GetMaxSpeed() ;
+                CinemachineImpulseSource cinemachineImpulseSource = GetComponent<CinemachineImpulseSource>();
+                CameraShakeManager.instance.CameraShake(cinemachineImpulseSource, shakeForce);
+            }
+        }
         void OnCollisionExit(Collision collision) => m_HasCollision = false;
 
         void OnCollisionStay(Collision collision)
