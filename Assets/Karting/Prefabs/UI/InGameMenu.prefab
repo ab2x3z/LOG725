@@ -2652,7 +2652,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   screenshotPanel: {fileID: 5510144977734701555}
   fileName: Screenshot
-  previewImage: {fileID: 1316288227226849327}
 --- !u!1 &8824232397423385169
 GameObject:
   m_ObjectHideFlags: 0

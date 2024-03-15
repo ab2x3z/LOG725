@@ -48,9 +48,9 @@ namespace KartGame.AI
         [Tooltip("What objects should the raycasts hit and detect?")]
         public LayerMask Mask;
         [Tooltip("Sensors contain ray information to sense out the world, you can have as many sensors as you need.")]
-        public Sensor[] Sensors;
+        public Sensor[] Sensors = new Sensor[0];
         [Header("Checkpoints"), Tooltip("What are the series of checkpoints for the agent to seek and pass through?")]
-        public Collider[] Colliders;
+        public Collider[] Colliders = new Collider[0];
         [Tooltip("What layer are the checkpoints on? This should be an exclusive layer for the agent to use.")]
         public LayerMask CheckpointMask;
 
@@ -198,51 +198,55 @@ namespace KartGame.AI
             sensor.AddObservation(m_Kart.LocalSpeed());
 
             // Add an observation for direction of the agent to the next checkpoint.
-            var next = (m_CheckpointIndex + 1) % Colliders.Length;
-            var nextCollider = Colliders[next];
-            if (nextCollider == null)
-                return;
-
-            var direction = (nextCollider.transform.position - m_Kart.transform.position).normalized;
-            sensor.AddObservation(Vector3.Dot(m_Kart.Rigidbody.velocity.normalized, direction));
-
-            if (ShowRaycasts)
-                Debug.DrawLine(AgentSensorTransform.position, nextCollider.transform.position, Color.magenta);
-
-            m_LastAccumulatedReward = 0.0f;
-            m_EndEpisode = false;
-            for (var i = 0; i < Sensors.Length; i++)
+            if(Colliders != null && Colliders.Length > 0)
             {
-                var current = Sensors[i];
-                var xform = current.Transform;
-                var hit = Physics.Raycast(AgentSensorTransform.position, xform.forward, out var hitInfo,
-                    current.RayDistance, Mask, QueryTriggerInteraction.Ignore);
+                var next = (Colliders.Length != 0) ? (m_CheckpointIndex + 1) % Colliders.Length-1 : 0;
+                var nextCollider = Colliders[next];
+                if (nextCollider == null)
+                    return;
+
+                var direction = (nextCollider.transform.position - m_Kart.transform.position).normalized;
+                sensor.AddObservation(Vector3.Dot(m_Kart.Rigidbody.velocity.normalized, direction));
 
                 if (ShowRaycasts)
-                {
-                    Debug.DrawRay(AgentSensorTransform.position, xform.forward * current.RayDistance, Color.green);
-                    Debug.DrawRay(AgentSensorTransform.position, xform.forward * current.HitValidationDistance, 
-                        Color.red);
+                    Debug.DrawLine(AgentSensorTransform.position, nextCollider.transform.position, Color.magenta);
 
-                    if (hit && hitInfo.distance < current.HitValidationDistance)
+                m_LastAccumulatedReward = 0.0f;
+                m_EndEpisode = false;
+                for (var i = 0; i < Sensors.Length; i++)
+                {
+                    var current = Sensors[i];
+                    var xform = current.Transform;
+                    var hit = Physics.Raycast(AgentSensorTransform.position, xform.forward, out var hitInfo,
+                        current.RayDistance, Mask, QueryTriggerInteraction.Ignore);
+
+                    if (ShowRaycasts)
                     {
-                        Debug.DrawRay(hitInfo.point, Vector3.up * 3.0f, Color.blue);
+                        Debug.DrawRay(AgentSensorTransform.position, xform.forward * current.RayDistance, Color.green);
+                        Debug.DrawRay(AgentSensorTransform.position, xform.forward * current.HitValidationDistance, 
+                            Color.red);
+
+                        if (hit && hitInfo.distance < current.HitValidationDistance)
+                        {
+                            Debug.DrawRay(hitInfo.point, Vector3.up * 3.0f, Color.blue);
+                        }
                     }
+
+                    if (hit)
+                    {
+                        if (hitInfo.distance < current.HitValidationDistance)
+                        {
+                            m_LastAccumulatedReward += HitPenalty;
+                            m_EndEpisode = true;
+                        }
+                    }
+
+                    sensor.AddObservation(hit ? hitInfo.distance : current.RayDistance);
                 }
 
-                if (hit)
-                {
-                    if (hitInfo.distance < current.HitValidationDistance)
-                    {
-                        m_LastAccumulatedReward += HitPenalty;
-                        m_EndEpisode = true;
-                    }
-                }
-
-                sensor.AddObservation(hit ? hitInfo.distance : current.RayDistance);
+                sensor.AddObservation(m_Acceleration);
             }
 
-            sensor.AddObservation(m_Acceleration);
         }
 
         public override void OnActionReceived(ActionBuffers actions)
@@ -251,17 +255,21 @@ namespace KartGame.AI
             InterpretDiscreteActions(actions);
 
             // Find the next checkpoint when registering the current checkpoint that the agent has passed.
-            var next = (m_CheckpointIndex + 1) % Colliders.Length;
-            var nextCollider = Colliders[next];
-            var direction = (nextCollider.transform.position - m_Kart.transform.position).normalized;
-            var reward = Vector3.Dot(m_Kart.Rigidbody.velocity.normalized, direction);
+            if(Colliders.Length > 0)
+            {
+                var next = (m_CheckpointIndex + 1) % Colliders.Length;
+                var nextCollider = Colliders[next];
+                var direction = (nextCollider.transform.position - m_Kart.transform.position).normalized;
+                var reward = Vector3.Dot(m_Kart.Rigidbody.velocity.normalized, direction);
 
-            if (ShowRaycasts) Debug.DrawRay(AgentSensorTransform.position, m_Kart.Rigidbody.velocity, Color.blue);
+                if (ShowRaycasts) Debug.DrawRay(AgentSensorTransform.position, m_Kart.Rigidbody.velocity, Color.blue);
 
-            // Add rewards if the agent is heading in the right direction
-            AddReward(reward * TowardsCheckpointReward);
-            AddReward((m_Acceleration && !m_Brake ? 1.0f : 0.0f) * AccelerationReward);
-            AddReward(m_Kart.LocalSpeed() * SpeedReward);
+                // Add rewards if the agent is heading in the right direction
+                AddReward(reward * TowardsCheckpointReward);
+                AddReward((m_Acceleration && !m_Brake ? 1.0f : 0.0f) * AccelerationReward);
+                AddReward(m_Kart.LocalSpeed() * SpeedReward);
+
+            }
         }
 
         public override void OnEpisodeBegin()
