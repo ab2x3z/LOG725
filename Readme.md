@@ -12,6 +12,7 @@ Naviguer à travers un magnifique monde avec un bolide de course, effectuer plus
 Les rapports de développement sont disponibles dans le dossier `Rapports` à la racine du projet.
 - Game Design Document: [GDD](Rapports/GDD_Equipe4.pdf)
 - Rapport Itération 1: [Rapport](Rapports/Rapport_Iteration1_Equipe4.pdf)
+- Rapport Itération 2: [Rapport](Rapports/Rapport_Iteration2_Equipe4.pdf)
 
 ## Installation
 
