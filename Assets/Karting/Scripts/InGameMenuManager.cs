@@ -29,8 +29,8 @@ public class InGameMenuManager : MonoBehaviour
 
         menuRoot.SetActive(false);
 
-        shadowsToggle.isOn = QualitySettings.shadows != ShadowQuality.Disable;
-        shadowsToggle.onValueChanged.AddListener(OnShadowsChanged);
+        //shadowsToggle.isOn = QualitySettings.shadows != ShadowQuality.Disable;
+        //shadowsToggle.onValueChanged.AddListener(OnShadowsChanged);
 
         framerateToggle.isOn = m_FramerateCounter.uiText.gameObject.activeSelf;
         framerateToggle.onValueChanged.AddListener(OnFramerateCounterChanged);
@@ -56,7 +56,7 @@ public class InGameMenuManager : MonoBehaviour
             if (EventSystem.current.currentSelectedGameObject == null)
             {
                 EventSystem.current.SetSelectedGameObject(null);
-                shadowsToggle.Select();
+                //shadowsToggle.Select();
             }
         }
 
