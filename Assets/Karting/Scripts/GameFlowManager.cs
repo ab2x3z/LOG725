@@ -5,6 +5,8 @@ using KartGame.KartSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
+
+
 public enum GameState{Play, Won, Lost}
 
 public class GameFlowManager : MonoBehaviour
@@ -42,7 +44,10 @@ public class GameFlowManager : MonoBehaviour
     public GameState gameState { get; private set; }
 
     public bool autoFindKarts = true;
-    public ArcadeKart playerKart;
+    
+    public CarManager carManager;
+    private  ArcadeKart playerKart;
+    
 
     ArcadeKart[] karts;
     ObjectiveManager m_ObjectiveManager;
@@ -53,6 +58,12 @@ public class GameFlowManager : MonoBehaviour
 
     void Start()
     {
+        if (playerKart == null)
+        {
+            playerKart = carManager.GetKart();    
+        }
+        
+        
         if (autoFindKarts)
         {
             karts = FindObjectsOfType<ArcadeKart>();
