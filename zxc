@@ -1,0 +1,166 @@
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500   1) ﻿using KartGame.KartSystems;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500   2) using Unity.MLAgents;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500   3) using Unity.MLAgents.Sensors;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500   4) using Unity.MLAgents.Actuators;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500   5) using UnityEngine;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500   6) using Random = UnityEngine.Random;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500   7) 
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500   8) namespace KartGame.AI
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500   9) {
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  10)     /// <summary>
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  11)     /// Sensors hold information such as the position of rotation of the origin of the raycast and its hit threshold
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  12)     /// to consider a "crash".
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  13)     /// </summary>
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  14)     [System.Serializable]
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  15)     public struct Sensor
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  16)     {
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  17)         public Transform Transform;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  18)         public float RayDistance;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  19)         public float HitValidationDistance;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  20)     }
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  21) 
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  22)     /// <summary>
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  23)     /// We only want certain behaviours when the agent runs.
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  24)     /// Training would allow certain functions such as OnAgentReset() be called and execute, while Inferencing will
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  25)     /// assume that the agent will continuously run and not reset.
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  26)     /// </summary>
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  27)     public enum AgentMode
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  28)     {
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  29)         Training,
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  30)         Inferencing
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  31)     }
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  32) 
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  33)     /// <summary>
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  34)     /// The KartAgent will drive the inputs for the KartController.
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  35)     /// </summary>
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  36)     public class KartAgent : Agent, IInput
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  37)     {
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  38) #region Training Modes
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  39)         [Tooltip("Are we training the agent or is the agent production ready?")]
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  40)         public AgentMode Mode = AgentMode.Training;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  41)         [Tooltip("What is the initial checkpoint the agent will go to? This value is only for inferencing.")]
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  42)         public ushort InitCheckpointIndex;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  43) 
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  44) #endregion
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  45) 
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  46) #region Senses
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  47)         [Header("Observation Params")]
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  48)         [Tooltip("What objects should the raycasts hit and detect?")]
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  49)         public LayerMask Mask;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  50)         [Tooltip("Sensors contain ray information to sense out the world, you can have as many sensors as you need.")]
+00000000 (Not Committed Yet 2024-03-14 03:04:27 -0400  51)         public Sensor[] Sensors = new Sensor[0];
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  52)         [Header("Checkpoints"), Tooltip("What are the series of checkpoints for the agent to seek and pass through?")]
+00000000 (Not Committed Yet 2024-03-14 03:04:27 -0400  53)         public Collider[] Colliders = new Collider[0];
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  54)         [Tooltip("What layer are the checkpoints on? This should be an exclusive layer for the agent to use.")]
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  55)         public LayerMask CheckpointMask;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  56) 
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  57)         [Space]
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  58)         [Tooltip("Would the agent need a custom transform to be able to raycast and hit the track? " +
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  59)             "If not assigned, then the root transform will be used.")]
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  60)         public Transform AgentSensorTransform;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  61) #endregion
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  62) 
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  63) #region Rewards
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  64)         [Header("Rewards"), Tooltip("What penatly is given when the agent crashes?")]
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  65)         public float HitPenalty = -1f;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  66)         [Tooltip("How much reward is given when the agent successfully passes the checkpoints?")]
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  67)         public float PassCheckpointReward;
+0765f8e2 (vincentdcr        2024-03-13 02:25:06 -0400  68)         [Tooltip("How much penalty is given when the agent passes a wrong checkpoint?")]
+0765f8e2 (vincentdcr        2024-03-13 02:25:06 -0400  69)         public float FailCheckpointPenalty;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  70)         [Tooltip("Should typically be a small value, but we reward the agent for moving in the right direction.")]
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  71)         public float TowardsCheckpointReward;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  72)         [Tooltip("Typically if the agent moves faster, we want to reward it for finishing the track quickly.")]
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  73)         public float SpeedReward;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  74)         [Tooltip("Reward the agent when it keeps accelerating")]
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  75)         public float AccelerationReward;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  76)         #endregion
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  77) 
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  78)         #region ResetParams
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  79)         [Header("Inference Reset Params")]
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  80)         [Tooltip("What is the unique mask that the agent should detect when it falls out of the track?")]
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  81)         public LayerMask OutOfBoundsMask;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  82)         [Tooltip("What are the layers we want to detect for the track and the ground?")]
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  83)         public LayerMask TrackMask;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  84)         [Tooltip("How far should the ray be when casted? For larger karts - this value should be larger too.")]
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  85)         public float GroundCastDistance;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  86) #endregion
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  87) 
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  88) #region Debugging
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  89)         [Header("Debug Option")] [Tooltip("Should we visualize the rays that the agent draws?")]
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  90)         public bool ShowRaycasts;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  91) #endregion
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  92) 
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  93)         ArcadeKart m_Kart;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  94)         bool m_Acceleration;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  95)         bool m_Brake;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  96)         float m_Steering;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  97)         int m_CheckpointIndex;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  98) 
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500  99)         bool m_EndEpisode;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 100)         float m_LastAccumulatedReward;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 101) 
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 102)         void Awake()
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 103)         {
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 104)             m_Kart = GetComponent<ArcadeKart>();
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 105)             if (AgentSensorTransform == null) AgentSensorTransform = transform;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 106)         }
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 107) 
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 108)         void Start()
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 109)         {
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 110)             // If the agent is training, then at the start of the simulation, pick a random checkpoint to train the agent.
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 111)             OnEpisodeBegin();
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 112) 
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 113)             if (Mode == AgentMode.Inferencing) m_CheckpointIndex = InitCheckpointIndex;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 114)         }
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 115) 
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 116)         void Update()
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 117)         {
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 118)             if (m_EndEpisode)
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 119)             {
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 120)                 m_EndEpisode = false;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 121)                 AddReward(m_LastAccumulatedReward);
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 122)                 EndEpisode();
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 123)                 OnEpisodeBegin();
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 124)             }
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 125)         }
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 126) 
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 127)         void LateUpdate()
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 128)         {
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 129)             switch (Mode)
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 130)             {
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 131)                 case AgentMode.Inferencing:
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 132)                     if (ShowRaycasts) 
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 133)                         Debug.DrawRay(transform.position, Vector3.down * GroundCastDistance, Color.cyan);
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 134) 
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 135)                     // We want to place the agent back on the track if the agent happens to launch itself outside of the track.
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 136)                     if (Physics.Raycast(transform.position + Vector3.up, Vector3.down, out var hit, GroundCastDistance, TrackMask)
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 137)                         && ((1 << hit.collider.gameObject.layer) & OutOfBoundsMask) > 0)
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 138)                     {
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 139)                         // Reset the agent back to its last known agent checkpoint
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 140)                         var checkpoint = Colliders[m_CheckpointIndex].transform;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 141)                         transform.localRotation = checkpoint.rotation;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 142)                         transform.position = checkpoint.position;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 143)                         m_Kart.Rigidbody.velocity = default;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 144)                         m_Steering = 0f;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 145) 						m_Acceleration = m_Brake = false; 
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 146)                     }
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 147) 
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 148)                     break;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 149)             }
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 150)         }
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 151) 
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 152)         void OnTriggerEnter(Collider other)
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 153)         {
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 154)             var maskedValue = 1 << other.gameObject.layer;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 155)             var triggered = maskedValue & CheckpointMask;
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 156) 
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 157)             FindCheckpointIndex(other, out var index);
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 158) 
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 159)             // Ensure that the agent touched the checkpoint and the new index is greater than the m_CheckpointIndex.
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 160)             if (triggered > 0 && index > m_CheckpointIndex || index == 0 && m_CheckpointIndex == Colliders.Length - 1)
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 161)             {
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 162)                 AddReward(PassCheckpointReward);
+8c12bd4b (anthonytremblay3  2024-01-25 15:40:03 -0500 163)                 m_CheckpointIndex = index;
+0765f8e2 (vincentdcr        2024-03-13 02:25:06 -0400 164)             } else if (triggered > 0 && index <= m_CheckpointIndex || index == Colliders.Length - 1 && m_CheckpointIndex == 0)
+0765f8e2 (vincentdcr        2024-03-13 02:25:06 -0400 165)             {
+0765f8e2 (vincentdcr        2024-03-13 02:25:06 -0400 166)   

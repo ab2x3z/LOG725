@@ -12,7 +12,6 @@ public class TakeScreenshot : MonoBehaviour
     [Tooltip("Name for the screenshot file")]
     public string fileName = "Screenshot";
     [Tooltip("Image to display the screenshot in")]
-    public RawImage previewImage;
 
     CanvasGroup m_MenuCanvas = null;
     Texture2D m_Texture;
@@ -40,36 +39,14 @@ public class TakeScreenshot : MonoBehaviour
         m_MenuCanvas = gameMenuManager.menuRoot.GetComponent<CanvasGroup>();
         DebugUtility.HandleErrorIfNullGetComponent<CanvasGroup, TakeScreenshot>(m_MenuCanvas, this, gameMenuManager.menuRoot.gameObject);
 
-        LoadScreenshot();
 #endif
     }
 
     void Update()
     {
-        previewImage.enabled = previewImage.texture != null;
-
         if (m_IsFeatureDisable)
             return;
 
-        if (m_TakeScreenshot)
-        {
-            m_MenuCanvas.alpha = 0;
-            ScreenCapture.CaptureScreenshot(getPath());
-            m_TakeScreenshot = false;
-            m_ScreenshotTaken = true;
-            return;
-        }
-
-        if (m_ScreenshotTaken)
-        {
-            LoadScreenshot();
-#if UNITY_EDITOR
-            AssetDatabase.Refresh();
-#endif
-
-            m_MenuCanvas.alpha = 1;
-            m_ScreenshotTaken = false;
-        }
     }
 
     public void OnTakeScreenshotButtonPressed()
@@ -86,7 +63,6 @@ public class TakeScreenshot : MonoBehaviour
             m_Texture = new Texture2D(2, 2);
             m_Texture.LoadImage(bytes);
             m_Texture.Apply();
-            previewImage.texture = m_Texture;
         }
     }
 }

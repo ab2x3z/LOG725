@@ -2,6 +2,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.VFX;
+using Cinemachine;
 
 namespace KartGame.KartSystems
 {
@@ -327,12 +328,16 @@ namespace KartGame.KartSystems
             Input = new InputData();
             WantsToDrift = false;
 
-            // gather nonzero input from our sources
-            for (int i = 0; i < m_Inputs.Length; i++)
+            if(m_Inputs != null)
             {
-                Input = m_Inputs[i].GenerateInput();
-                WantsToDrift = Input.Brake && Vector3.Dot(Rigidbody.velocity, transform.forward) > 0.0f;
+                // gather nonzero input from our sources
+                for (int i = 0; i < m_Inputs.Length; i++)
+                {
+                    Input = m_Inputs[i].GenerateInput();
+                    WantsToDrift = Input.Brake && Vector3.Dot(Rigidbody.velocity, transform.forward) > 0.0f;
+                }
             }
+
         }
 
         void TickPowerups()
@@ -397,21 +402,19 @@ namespace KartGame.KartSystems
             }
         }
 
-        void OnCollisionEnter(Collision collision) => m_HasCollision = true;
-        void OnCollisionExit(Collision collision) => m_HasCollision = false;
-
-        void OnCollisionStay(Collision collision)
+        void OnCollisionEnter(Collision collision)
         {
             m_HasCollision = true;
-            m_LastCollisionNormal = Vector3.zero;
-            float dot = -1.0f;
-
-            foreach (var contact in collision.contacts)
+            if (collision.gameObject.GetComponent<ArcadeKart>() != null && collision.gameObject.tag == "Player")
             {
-                if (Vector3.Dot(contact.normal, Vector3.up) > dot)
-                    m_LastCollisionNormal = contact.normal;
+                ArcadeKart player = collision.gameObject.GetComponent<ArcadeKart>();
+                //shake the camera proportionally to the speed of the collision
+                float shakeForce = player.Rigidbody.velocity.magnitude / player.GetMaxSpeed();
+                CinemachineImpulseSource cinemachineImpulseSource = GetComponent<CinemachineImpulseSource>();
+                CameraShakeManager.instance.CameraShake(cinemachineImpulseSource, shakeForce);
             }
         }
+        void OnCollisionExit(Collision collision) => m_HasCollision = false;
 
         void MoveVehicle(bool accelerate, bool brake, float turnInput)
         {
