@@ -4,6 +4,7 @@ using Unity.MLAgents.Sensors;
 using Unity.MLAgents.Actuators;
 using UnityEngine;
 using Random = UnityEngine.Random;
+using Cinemachine.Utility;
 
 namespace KartGame.AI
 {
@@ -67,6 +68,8 @@ namespace KartGame.AI
         public float PassCheckpointReward;
         [Tooltip("How much penalty is given when the agent passes a wrong checkpoint?")]
         public float FailCheckpointPenalty;
+        [Tooltip("How much penalty is given when the agent goes Out of bounds ?")]
+        public float OOBPenalty;
         [Tooltip("Should typically be a small value, but we reward the agent for moving in the right direction.")]
         public float TowardsCheckpointReward;
         [Tooltip("Typically if the agent moves faster, we want to reward it for finishing the track quickly.")]
@@ -98,11 +101,14 @@ namespace KartGame.AI
 
         bool m_EndEpisode;
         float m_LastAccumulatedReward;
+        float m_CooldownCheckSensors;
+        float EPSILON = 0.01f;
 
         void Awake()
         {
             m_Kart = GetComponent<ArcadeKart>();
             if (AgentSensorTransform == null) AgentSensorTransform = transform;
+            m_CooldownCheckSensors = -1.0f;
         }
 
         void Start()
@@ -110,7 +116,8 @@ namespace KartGame.AI
             // If the agent is training, then at the start of the simulation, pick a random checkpoint to train the agent.
             OnEpisodeBegin();
 
-            if (Mode == AgentMode.Inferencing) m_CheckpointIndex = InitCheckpointIndex;
+            if (Mode == AgentMode.Inferencing) m_CheckpointIndex = InitCheckpointIndex % (Colliders.Length);
+            //Debug.Log($"Agent is starting at checkpoint {m_CheckpointIndex}");
         }
 
         void Update()
@@ -122,31 +129,13 @@ namespace KartGame.AI
                 EndEpisode();
                 OnEpisodeBegin();
             }
+            m_CooldownCheckSensors -= Time.deltaTime;
+
         }
 
         void LateUpdate()
         {
-            switch (Mode)
-            {
-                case AgentMode.Inferencing:
-                    if (ShowRaycasts) 
-                        Debug.DrawRay(transform.position, Vector3.down * GroundCastDistance, Color.cyan);
-
-                    // We want to place the agent back on the track if the agent happens to launch itself outside of the track.
-                    if (Physics.Raycast(transform.position + Vector3.up, Vector3.down, out var hit, GroundCastDistance, TrackMask)
-                        && ((1 << hit.collider.gameObject.layer) & OutOfBoundsMask) > 0)
-                    {
-                        // Reset the agent back to its last known agent checkpoint
-                        var checkpoint = Colliders[m_CheckpointIndex].transform;
-                        transform.localRotation = checkpoint.rotation;
-                        transform.position = checkpoint.position;
-                        m_Kart.Rigidbody.velocity = default;
-                        m_Steering = 0f;
-						m_Acceleration = m_Brake = false; 
-                    }
-
-                    break;
-            }
+           
         }
 
         void OnTriggerEnter(Collider other)
@@ -154,16 +143,49 @@ namespace KartGame.AI
             var maskedValue = 1 << other.gameObject.layer;
             var triggered = maskedValue & CheckpointMask;
 
-            FindCheckpointIndex(other, out var index);
+            bool goodCp = false;
+            bool badCp = false;
 
-            // Ensure that the agent touched the checkpoint and the new index is greater than the m_CheckpointIndex.
-            if (triggered > 0 && index > m_CheckpointIndex || index == 0 && m_CheckpointIndex == Colliders.Length - 1)
+            FindCheckpointIndex(other, out var index);
+            //Edge cases first and last checkpoint
+            if (index == 0 && m_CheckpointIndex == (Colliders.Length - 1) )
             {
-                AddReward(PassCheckpointReward);
+                goodCp = true;
+            } if (index == (Colliders.Length - 1) && m_CheckpointIndex == 0)
+            {
+                badCp = true;
+            }
+
+                // Ensure that the agent touched the checkpoint and the new index is greater than the m_CheckpointIndex.
+            if (triggered > 0 && !badCp &&  index > m_CheckpointIndex || goodCp)
+            {
+                if (!(m_CheckpointIndex == index - 1) && !(goodCp)) {
+                    Transform checkpoint;
+                    // Reset the agent back to its last known agent checkpoint
+                    if (m_CheckpointIndex < Colliders.Length && m_CheckpointIndex >= 0)
+                    {
+                        checkpoint = Colliders[m_CheckpointIndex].transform;
+                    }
+                    else
+                    {
+                        checkpoint = Colliders[0].transform;
+                    }
+                    transform.localRotation = checkpoint.rotation;
+                    transform.position = checkpoint.position;
+                    m_Kart.Rigidbody.velocity = default;
+                    m_Steering = 0f;
+                    m_Acceleration = m_Brake = false;
+                } else
+                {
+                    AddReward(PassCheckpointReward);
+                    m_CheckpointIndex = index;
+                    //Debug.Log($"Agent passed good cp");
+                }
+            } else if (triggered > 0 && !goodCp && index < m_CheckpointIndex || badCp)
+            {
                 m_CheckpointIndex = index;
-            } else if (triggered > 0 && index <= m_CheckpointIndex || index == Colliders.Length - 1 && m_CheckpointIndex == 0)
-            {
                 AddReward(FailCheckpointPenalty);
+                //Debug.Log($"Agent passed wrong cp : {m_LastAccumulatedReward}");
             }
         }
 
@@ -200,7 +222,7 @@ namespace KartGame.AI
             // Add an observation for direction of the agent to the next checkpoint.
             if(Colliders != null && Colliders.Length > 0)
             {
-                var next = (Colliders.Length != 0) ? (m_CheckpointIndex + 1) % Colliders.Length-1 : 0;
+                var next = (Colliders.Length != 0) ? (m_CheckpointIndex + 1) % (Colliders.Length-1) : 0;
                 var nextCollider = Colliders[next];
                 if (nextCollider == null)
                     return;
@@ -234,7 +256,9 @@ namespace KartGame.AI
 
                     if (hit)
                     {
-                        if (hitInfo.distance < current.HitValidationDistance)
+                        //On verif la normale du hit pour eviter de respawn si on touche une route trop pentue
+                        if (hitInfo.distance < current.HitValidationDistance && m_CooldownCheckSensors <= 0.0f
+                            && Mathf.Abs(hitInfo.normal.y) <= 0.4f )
                         {
                             m_LastAccumulatedReward += HitPenalty;
                             m_EndEpisode = true;
@@ -254,8 +278,11 @@ namespace KartGame.AI
             base.OnActionReceived(actions);
             InterpretDiscreteActions(actions);
 
+            if (ShowRaycasts)
+                Debug.DrawRay(transform.position, Vector3.down * GroundCastDistance, Color.cyan);
+
             // Find the next checkpoint when registering the current checkpoint that the agent has passed.
-            if(Colliders.Length > 0)
+            if (Colliders.Length > 0 && !(Mathf.Abs(m_Kart.Rigidbody.velocity.magnitude - 0f) < EPSILON))
             {
                 var next = (m_CheckpointIndex + 1) % Colliders.Length;
                 var nextCollider = Colliders[next];
@@ -268,7 +295,31 @@ namespace KartGame.AI
                 AddReward(reward * TowardsCheckpointReward);
                 AddReward((m_Acceleration && !m_Brake ? 1.0f : 0.0f) * AccelerationReward);
                 AddReward(m_Kart.LocalSpeed() * SpeedReward);
+                //Debug.Log($"Agent is moving : {reward * TowardsCheckpointReward}");
 
+            }
+            // We want to place the agent back on the track if the agent happens to launch itself outside of the track.
+            if (Physics.Raycast(transform.position + Vector3.up, Vector3.down, out var hit, GroundCastDistance, TrackMask)
+                && ((1 << hit.collider.gameObject.layer) & OutOfBoundsMask) > 0)
+            {
+                Transform checkpoint;
+                //Debug.Log("Agent is out of bounds. Resetting agent...");
+                // Reset the agent back to its last known agent checkpoint
+                if (m_CheckpointIndex < Colliders.Length && m_CheckpointIndex >= 0)
+                {
+                    checkpoint = Colliders[m_CheckpointIndex].transform;
+                }
+                else
+                {
+                    checkpoint = Colliders[0].transform;
+                }
+                transform.localRotation = checkpoint.rotation;
+                transform.position = checkpoint.position;
+                m_Kart.Rigidbody.velocity = default;
+                m_Steering = 0f;
+                m_Acceleration = m_Brake = false;
+                AddReward(OOBPenalty);
+                //Debug.Log($"Agent went off : {m_LastAccumulatedReward}");
             }
         }
 
@@ -285,17 +336,49 @@ namespace KartGame.AI
                     m_Acceleration = false;
                     m_Brake = false;
                     m_Steering = 0f;
+                    m_CooldownCheckSensors = 0.2f;
                     break;
                 default:
                     break;
             }
         }
 
+        //heuristic for the agent up arrow for acceleration, down arrow for brake, left and right for steering
+        public override void Heuristic(in ActionBuffers actionsOut)
+        {
+            var actions = actionsOut.DiscreteActions;
+            actions.Clear();
+            if ((Input.GetKey(KeyCode.LeftArrow) && Input.GetKey(KeyCode.RightArrow)) || (!Input.GetKey(KeyCode.LeftArrow) && !Input.GetKey(KeyCode.RightArrow)))
+            {
+                actions[0] = 1;
+            }
+            else if (Input.GetKey(KeyCode.RightArrow))
+            {
+                actions[0] = 2;
+            }
+            else
+            {
+                actions[0] = 0;
+            }
+            if ( (Input.GetKey(KeyCode.UpArrow) && Input.GetKey(KeyCode.DownArrow) ) || (!Input.GetKey(KeyCode.UpArrow) && !Input.GetKey(KeyCode.DownArrow) ) )
+            {
+                actions[1] = 1;
+            }
+            else if (Input.GetKey(KeyCode.UpArrow))
+            {
+                actions[1] = 2;
+            }
+            else 
+            {
+                actions[1] = 0;
+            }
+        }
+
         void InterpretDiscreteActions(ActionBuffers actions)
         {
             m_Steering = actions.DiscreteActions[0] - 1f;
-            m_Acceleration = actions.DiscreteActions[1] >= 1.0f;
-            m_Brake = actions.DiscreteActions[1] < 1.0f;
+            m_Acceleration = actions.DiscreteActions[1] == 2 ;
+            m_Brake = actions.DiscreteActions[1] == 0;
         }
 
         public InputData GenerateInput()

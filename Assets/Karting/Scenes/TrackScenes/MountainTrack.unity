@@ -4761,6 +4761,26 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 42969549464865745, guid: 9b215ce4aad459a4aafc4007bab4e372,
+        type: 3}
+      propertyPath: Colliders.Array.size
+      value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 42969549464865745, guid: 9b215ce4aad459a4aafc4007bab4e372,
+        type: 3}
+      propertyPath: Colliders.Array.data[0]
+      value: 
+      objectReference: {fileID: 1409747249}
+    - target: {fileID: 42969549464865745, guid: 9b215ce4aad459a4aafc4007bab4e372,
+        type: 3}
+      propertyPath: Colliders.Array.data[1]
+      value: 
+      objectReference: {fileID: 1667314590}
+    - target: {fileID: 42969549464865745, guid: 9b215ce4aad459a4aafc4007bab4e372,
+        type: 3}
+      propertyPath: Colliders.Array.data[2]
+      value: 
+      objectReference: {fileID: 1911882759}
     - target: {fileID: 1768142964523943767, guid: 9b215ce4aad459a4aafc4007bab4e372,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -15415,6 +15435,12 @@ MonoBehaviour:
   CollectVFXSpawnPoint: {fileID: 0}
   CollectSound: {fileID: 0}
   active: 0
+--- !u!65 &1409747249 stripped
+BoxCollider:
+  m_CorrespondingSourceObject: {fileID: 3761431495673512402, guid: 6d9796d84c9e5a54fb4e014484945a46,
+    type: 3}
+  m_PrefabInstance: {fileID: 294538553}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1411612671
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -17514,6 +17540,12 @@ MonoBehaviour:
   CollectVFXSpawnPoint: {fileID: 0}
   CollectSound: {fileID: 0}
   active: 0
+--- !u!65 &1667314590 stripped
+BoxCollider:
+  m_CorrespondingSourceObject: {fileID: 3761431495673512402, guid: 6d9796d84c9e5a54fb4e014484945a46,
+    type: 3}
+  m_PrefabInstance: {fileID: 1705594713}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1670235909
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -20316,6 +20348,12 @@ MonoBehaviour:
   CollectVFXSpawnPoint: {fileID: 0}
   CollectSound: {fileID: 0}
   active: 0
+--- !u!65 &1911882759 stripped
+BoxCollider:
+  m_CorrespondingSourceObject: {fileID: 3761431495673512402, guid: 6d9796d84c9e5a54fb4e014484945a46,
+    type: 3}
+  m_PrefabInstance: {fileID: 974197868}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1001 &1931383003
 PrefabInstance:
   m_ObjectHideFlags: 0
