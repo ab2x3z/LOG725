@@ -182,6 +182,12 @@ namespace KartGame.KartSystems
         bool m_HasCollision;
         bool m_InAir = false;
 
+        //Checkpoint counter for position estimation
+        public int m_CheckpointCounter;
+
+        public void IncrementCheckpointCounter() => m_CheckpointCounter++;
+        public int GetCheckpointCount() => m_CheckpointCounter;
+
         public void AddPowerup(StatPowerup statPowerup) => m_ActivePowerupList.Add(statPowerup);
         public void SetCanMove(bool move) => m_CanMove = move;
         public float GetMaxSpeed() => Mathf.Max(m_FinalStats.TopSpeed, m_FinalStats.ReverseSpeed);
@@ -234,6 +240,9 @@ namespace KartGame.KartSystems
 
         void Awake()
         {
+
+            //m_CheckpointCounter = 0;
+
             Rigidbody = GetComponent<Rigidbody>();
             m_Inputs = GetComponents<IInput>();
 
@@ -283,7 +292,6 @@ namespace KartGame.KartSystems
 
         void FixedUpdate()
         {
-            
             UpdateSuspensionParams(FrontLeftWheel);
             UpdateSuspensionParams(FrontRightWheel);
             UpdateSuspensionParams(RearLeftWheel);

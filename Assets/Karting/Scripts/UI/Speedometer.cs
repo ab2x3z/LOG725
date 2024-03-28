@@ -8,8 +8,8 @@ namespace KartGame.UI
     public class Speedometer : MonoBehaviour
     {
         public TextMeshProUGUI Speed;
-        public bool AutoFindKart = true;
-        public ArcadeKart KartController;
+        public bool AutoFindCar = true;
+        public CarManager carManager;
 
         public Rigidbody target;
 
@@ -21,15 +21,19 @@ namespace KartGame.UI
         [Header("UI")]
         public RectTransform arrow; // The arrow in the speedometer
 
+        private ArcadeKart car;
+
         void Start()
         {
-            if (AutoFindKart)
+            if (AutoFindCar)
             {
-                ArcadeKart kart = FindObjectOfType<ArcadeKart>();
-                KartController = kart;
+                car = GameObject.FindGameObjectWithTag("Player").GetComponent<ArcadeKart>();
+            } else
+            {
+                car = carManager.GetKart();
             }
 
-            if (!KartController)
+            if (!car)
             {
                 gameObject.SetActive(false);
             }
@@ -38,10 +42,10 @@ namespace KartGame.UI
         // Update is called once per frame
         void Update()
         {
-            float speed = KartController.Rigidbody.velocity.magnitude;
+            float speed = car.Rigidbody.velocity.magnitude;
             float realSpeed = Mathf.FloorToInt(speed * 3.6f);
             if(Speed != null)
-                Speed.text = string.Format($"{realSpeed} km/h");
+                Speed.text = string.Format($"{realSpeed} <size=18>km/h</size>");
             if (arrow != null)
                 arrow.localEulerAngles = new Vector3(0, 0, Mathf.Lerp(minSpeedArrowAngle, maxSpeedArrowAngle, realSpeed / maxSpeed));
         }

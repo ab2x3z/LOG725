@@ -47,6 +47,8 @@ public class GameFlowManager : MonoBehaviour
     
     public CarManager carManager;
     private  ArcadeKart playerKart;
+
+    public PositionManager positionManager;
     
 
     ArcadeKart[] karts;
@@ -58,6 +60,11 @@ public class GameFlowManager : MonoBehaviour
 
     void Start()
     {
+        if (carManager == null)
+        {
+            carManager = FindObjectOfType<CarManager>();
+        }
+
         if (playerKart == null)
         {
             playerKart = carManager.GetKart();    
@@ -89,6 +96,11 @@ public class GameFlowManager : MonoBehaviour
         foreach (ArcadeKart k in karts)
         {
 			k.SetCanMove(false);
+        }
+
+        if (positionManager == null)
+        {
+            positionManager = FindObjectOfType<PositionManager>();
         }
 
         //run race countdown animation
@@ -153,21 +165,25 @@ public class GameFlowManager : MonoBehaviour
         }
         else
         {
-            if (m_ObjectiveManager.AreAllObjectivesCompleted())
+            if (m_ObjectiveManager.AreAllObjectivesCompleted() && positionManager.IsPlayerFirst())
                 EndGame(true);
 
-            if (m_TimeManager.IsFinite && m_TimeManager.IsOver)
+            if (m_TimeManager.IsFinite && m_TimeManager.IsOver || (m_ObjectiveManager.AreAllObjectivesCompleted() && !positionManager.IsPlayerFirst()))
                 EndGame(false);
         }
     }
 
     void EndGame(bool win)
     {
+        positionManager.UpdateLeaderboardToggle();
+        positionManager.StoreLeaderboard();
+
         // unlocks the cursor before leaving the scene, to be able to click buttons
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
         m_TimeManager.StopRace();
+
 
         // Remember that we need to load the appropriate end scene after a delay
         gameState = win ? GameState.Won : GameState.Lost;

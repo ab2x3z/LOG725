@@ -82,7 +82,7 @@ GameObject:
   - component: {fileID: 3498215949192677038}
   m_Layer: 13
   m_Name: WheelColliders
-  m_TagString: Untagged
+  m_TagString: AI
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -126,7 +126,7 @@ GameObject:
   - component: {fileID: 6707215201220453882}
   m_Layer: 13
   m_Name: Audi_Quattro_IA2
-  m_TagString: Untagged
+  m_TagString: AI
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -238,6 +238,7 @@ MonoBehaviour:
   GroundLayers:
     serializedVersion: 2
     m_Bits: 32563
+  m_CheckpointCounter: 0
 --- !u!114 &5140976015725139547
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -483,7 +484,7 @@ GameObject:
   - component: {fileID: 7493083015705986975}
   m_Layer: 13
   m_Name: KartBouncingCapsule
-  m_TagString: Untagged
+  m_TagString: AI
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -537,7 +538,7 @@ GameObject:
   - component: {fileID: 6885852278238050237}
   m_Layer: 13
   m_Name: KartVisual
-  m_TagString: Untagged
+  m_TagString: AI
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -786,6 +787,10 @@ PrefabInstance:
     - target: {fileID: 100006, guid: 305a556307b36464395aa157cffcd3db, type: 3}
       propertyPath: m_Layer
       value: 13
+      objectReference: {fileID: 0}
+    - target: {fileID: 100006, guid: 305a556307b36464395aa157cffcd3db, type: 3}
+      propertyPath: m_TagString
+      value: AI
       objectReference: {fileID: 0}
     - target: {fileID: 100010, guid: 305a556307b36464395aa157cffcd3db, type: 3}
       propertyPath: m_Layer
