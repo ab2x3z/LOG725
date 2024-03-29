@@ -751,6 +751,14 @@ MonoBehaviour:
     Grip: 0.98
     Steer: 4.3
     AddedGravity: 1.05
+  GroundCastDistance: 2
+  TrackMask:
+    serializedVersion: 2
+    m_Bits: 2560
+  OutOfBoundsMask:
+    serializedVersion: 2
+    m_Bits: 512
+  CheckpointsList: {fileID: 0}
   m_VisualWheels:
   - {fileID: 8930034205412804019}
   - {fileID: 4857264245626332071}
