@@ -21,7 +21,7 @@ namespace KartGame.KartSystems
             selectedCar = Resources.Load("Cars/Prefabs/RallyCars/"+ carName) as GameObject;
             Debug.Log("Loading scene with car: "+ selectedCar);
             // instancie la voiture aux coordonnées de l'objet parent
-            instantiatedCar = Instantiate(selectedCar, transform.position, Quaternion.identity);
+            instantiatedCar = Instantiate(selectedCar, transform.position, transform.rotation);
             playerKart = instantiatedCar.GetComponent<ArcadeKart>();
         }
         
