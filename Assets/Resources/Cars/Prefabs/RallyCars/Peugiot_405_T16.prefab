@@ -460,7 +460,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 4895846115232909980}
   serializedVersion: 4
-  m_Mass: 250
+  m_Mass: 245
   m_Drag: 0
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -492,24 +492,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   baseStats:
-    TopSpeed: 30
-    Acceleration: 14
+    TopSpeed: 34
+    Acceleration: 18
     ReverseSpeed: 10
     ReverseAcceleration: 5
-    AccelerationCurve: 0.5
-    Braking: 11
+    AccelerationCurve: 0.6
+    Braking: 12
     CoastingDrag: 2
-    Grip: 0.97
-    Steer: 4
-    AddedGravity: 1
-  GroundCastDistance: 2
-  TrackMask:
-    serializedVersion: 2
-    m_Bits: 2560
-  OutOfBoundsMask:
-    serializedVersion: 2
-    m_Bits: 512
-  CheckpointsList: {fileID: 0}
+    Grip: 1
+    Steer: 4.5
+    AddedGravity: 1.05
   m_VisualWheels:
   - {fileID: 1539914672495508582}
   - {fileID: 5921152478076174573}
@@ -517,12 +509,12 @@ MonoBehaviour:
   - {fileID: 6152649113084193818}
   CenterOfMass: {fileID: 4895846115861964227}
   AirborneReorientationCoefficient: 3
-  DriftGrip: 0.5
-  DriftAdditionalSteer: 2
+  DriftGrip: 0.45
+  DriftAdditionalSteer: 2.4
   MinAngleToFinishDrift: 29
-  MinSpeedPercentToFinishDrift: 0.75
-  DriftControl: 16
-  DriftDampening: 8
+  MinSpeedPercentToFinishDrift: 0.72
+  DriftControl: 18
+  DriftDampening: 7
   DriftSparkVFX: {fileID: 5720418349283321134, guid: 83d0ce15c25af954bbd1425a9ddf8458,
     type: 3}
   DriftSparkHorizontalOffset: 0.15
