@@ -359,17 +359,7 @@ MonoBehaviour:
   - Transform: {fileID: 1921160680923579536}
     RayDistance: 12.5
     HitValidationDistance: 1.7
-  Colliders:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  Colliders: []
   CheckpointMask:
     serializedVersion: 2
     m_Bits: 16384

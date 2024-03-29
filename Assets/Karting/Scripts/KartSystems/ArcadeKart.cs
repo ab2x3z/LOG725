@@ -241,7 +241,7 @@ namespace KartGame.KartSystems
         void Awake()
         {
 
-            //m_CheckpointCounter = 0;
+            m_CheckpointCounter = 0;
 
             Rigidbody = GetComponent<Rigidbody>();
             m_Inputs = GetComponents<IInput>();

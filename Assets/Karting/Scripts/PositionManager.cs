@@ -19,7 +19,7 @@ public class PositionManager : MonoBehaviour
             cars = new List<ArcadeKart>(FindObjectsOfType<ArcadeKart>());
         if (checkpoints.Length == 0)
         {
-            GameObject checkpointParent = GameObject.Find("CheckpointList");
+            GameObject checkpointParent = GameObject.Find("Checkpoints");
             checkpoints = new Transform[checkpointParent.transform.childCount];
             for (int i = 0; i < checkpointParent.transform.childCount; i++)
             {
@@ -34,12 +34,12 @@ public class PositionManager : MonoBehaviour
         {
             // Trie les voitures en fonction de leur position
             cars.Sort(CompareCars);
-            string txt = "";
-            for (int i = 0; i < cars.Count; i++)
-            {
-                txt += "Position " + (i + 1) + ": " + cars[i].name + "\n";
-            }
-            Debug.Log(txt);
+            //string txt = "";
+            //for (int i = 0; i < cars.Count; i++)
+            //{
+            //    txt += "Position " + (i + 1) + ": " + cars[i].name + "\n";
+            //}
+            //Debug.Log(txt);
         }
     }
 

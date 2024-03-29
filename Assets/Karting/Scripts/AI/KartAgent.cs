@@ -50,8 +50,10 @@ namespace KartGame.AI
         public LayerMask Mask;
         [Tooltip("Sensors contain ray information to sense out the world, you can have as many sensors as you need.")]
         public Sensor[] Sensors = new Sensor[0];
-        [Header("Checkpoints"), Tooltip("What are the series of checkpoints for the agent to seek and pass through?")]
-        public Collider[] Colliders = new Collider[0];
+        [Header("Checkpoints"), Tooltip("What is the (parent) list of checkpoints for the agent to seek and pass through?")]
+        public GameObject CheckpointsList;
+
+        private Collider[] Colliders = new Collider[0];
         [Tooltip("What layer are the checkpoints on? This should be an exclusive layer for the agent to use.")]
         public LayerMask CheckpointMask;
 
@@ -109,6 +111,16 @@ namespace KartGame.AI
             m_Kart = GetComponent<ArcadeKart>();
             if (AgentSensorTransform == null) AgentSensorTransform = transform;
             m_CooldownCheckSensors = -1.0f;
+
+            if (CheckpointsList == null)
+            {
+                CheckpointsList = GameObject.Find("Checkpoints");
+            }
+            Colliders = new Collider[CheckpointsList.transform.childCount];
+            for (int i = 0; i < CheckpointsList.transform.childCount; i++)
+            {
+                Colliders[i] = CheckpointsList.transform.GetChild(i).GetComponent<Collider>();
+            }
         }
 
         void Start()
