@@ -202,6 +202,14 @@ MonoBehaviour:
     Grip: 0.97
     Steer: 4
     AddedGravity: 1
+  GroundCastDistance: 2
+  TrackMask:
+    serializedVersion: 2
+    m_Bits: 2560
+  OutOfBoundsMask:
+    serializedVersion: 2
+    m_Bits: 512
+  CheckpointsList: {fileID: 0}
   m_VisualWheels:
   - {fileID: 0}
   - {fileID: 0}
@@ -359,7 +367,7 @@ MonoBehaviour:
   - Transform: {fileID: 1921160680923579536}
     RayDistance: 12.5
     HitValidationDistance: 1.7
-  Colliders: []
+  CheckpointsList: {fileID: 0}
   CheckpointMask:
     serializedVersion: 2
     m_Bits: 16384

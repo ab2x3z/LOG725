@@ -91,6 +91,18 @@ namespace KartGame.KartSystems
             AddedGravity        = 1f,
         };
 
+        [Header("Ground Detection")]
+        [Tooltip("The distance below the kart that we detect the ground.")]
+        public float GroundCastDistance = 2.0f;
+        [Tooltip("The layermask of the ground.")]
+        public LayerMask TrackMask;
+        [Tooltip("The layermask of the out of bounds region.")]
+        public LayerMask OutOfBoundsMask;
+        [Tooltip("What is the (parent) list of checkpoints for the agent to seek and pass through?")]
+        public GameObject CheckpointsList;
+
+        private Collider[] Colliders;
+
         [Header("Vehicle Visual")] 
         public List<GameObject> m_VisualWheels;
 
@@ -242,6 +254,15 @@ namespace KartGame.KartSystems
         {
 
             m_CheckpointCounter = 0;
+            if (CheckpointsList == null)
+            {
+                CheckpointsList = GameObject.Find("Checkpoints");
+            }
+            Colliders = new Collider[CheckpointsList.transform.childCount];
+            for (int i = 0; i < CheckpointsList.transform.childCount; i++)
+            {
+                Colliders[i] = CheckpointsList.transform.GetChild(i).GetComponent<Collider>();
+            }
 
             Rigidbody = GetComponent<Rigidbody>();
             m_Inputs = GetComponents<IInput>();
@@ -290,6 +311,25 @@ namespace KartGame.KartSystems
             m_DriftSparkInstances.Add((wheel, horizontalOffset, -rotation, spark));
         }
 
+        void CheckIfOOB()
+        {
+            //get the transform of the object that is the parent of this script
+
+
+            // We want to place the agent back on the track if the agent happens to launch itself outside of the track.
+            if (Physics.Raycast(transform.position + Vector3.up, Vector3.down, out var hit, GroundCastDistance, TrackMask)
+                && ((1 << hit.collider.gameObject.layer) & OutOfBoundsMask) > 0)
+            {
+                Transform checkpoint;
+                //Debug.Log("Agent is out of bounds. Resetting agent...");
+                // Reset the agent back to its last known agent checkpoint
+                checkpoint = Colliders[m_CheckpointCounter % Colliders.Length].transform;
+                transform.localRotation = checkpoint.rotation;
+                transform.position = checkpoint.position;
+                Rigidbody.velocity = default;
+            }
+        }
+
         void FixedUpdate()
         {
             UpdateSuspensionParams(FrontLeftWheel);
@@ -329,6 +369,8 @@ namespace KartGame.KartSystems
             m_PreviousGroundPercent = GroundPercent;
 
             UpdateDriftVFXOrientation();
+
+            CheckIfOOB();
         }
 
         void GatherInputs()
