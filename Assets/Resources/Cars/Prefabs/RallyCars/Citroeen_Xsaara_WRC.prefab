@@ -93,7 +93,7 @@ GameObject:
   m_Component:
   - component: {fileID: 2895312784524730956}
   m_Layer: 0
-  m_Name: wheel_FL
+  m_Name: wheel_FL2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -274,7 +274,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1380356810046280919}
   m_Layer: 0
-  m_Name: wheel_RL
+  m_Name: wheel_RL2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -632,6 +632,7 @@ MonoBehaviour:
   GroundLayers:
     serializedVersion: 2
     m_Bits: 32563
+  showcaseMode: 0
   m_CheckpointCounter: 0
 --- !u!114 &4895846115232909981
 MonoBehaviour:
@@ -945,7 +946,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4679404384521354358}
   m_Layer: 0
-  m_Name: wheel_FR
+  m_Name: wheel_FR2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1063,7 +1064,7 @@ GameObject:
   - component: {fileID: 4726296778797183277}
   - component: {fileID: 4714425078650996889}
   m_Layer: 0
-  m_Name: Body_Mesh
+  m_Name: Body_Mesh_2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1144,7 +1145,7 @@ GameObject:
   m_Component:
   - component: {fileID: 4310680273360712254}
   m_Layer: 0
-  m_Name: wheel_RR
+  m_Name: wheel_RR2
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -3,6 +3,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using UnityEngine.VFX;
 using Cinemachine;
+using UnityEditor.Search;
 
 namespace KartGame.KartSystems
 {
@@ -167,6 +168,9 @@ namespace KartGame.KartSystems
         [Tooltip("Which layers the wheels will detect.")]
         public LayerMask GroundLayers = Physics.DefaultRaycastLayers;
 
+        [Tooltip("Only used in the menu to display the car stats.")]
+        public bool showcaseMode = false;
+
         // the input sources that can control the kart
         IInput[] m_Inputs;
 
@@ -252,7 +256,10 @@ namespace KartGame.KartSystems
 
         void Awake()
         {
-
+            if (showcaseMode)
+            { // not meant to be played, we don't care about anything but the model and the stats
+                return;
+            }
             m_CheckpointCounter = 0;
             if (CheckpointsList == null)
             {
@@ -332,6 +339,10 @@ namespace KartGame.KartSystems
 
         void FixedUpdate()
         {
+            if (showcaseMode)
+            { // not meant to be played, we don't care about anything but the model and the stats
+                return;
+            }
             UpdateSuspensionParams(FrontLeftWheel);
             UpdateSuspensionParams(FrontRightWheel);
             UpdateSuspensionParams(RearLeftWheel);

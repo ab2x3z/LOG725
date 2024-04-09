@@ -305,7 +305,7 @@ GameObject:
   - component: {fileID: 3892895794719453269}
   - component: {fileID: 3892895794709897139}
   m_Layer: 2
-  m_Name: Wheels_5
+  m_Name: Wheels
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -712,6 +712,7 @@ MonoBehaviour:
   GroundLayers:
     serializedVersion: 2
     m_Bits: 32563
+  showcaseMode: 0
   m_CheckpointCounter: 0
 --- !u!114 &4895846115232909981
 MonoBehaviour:

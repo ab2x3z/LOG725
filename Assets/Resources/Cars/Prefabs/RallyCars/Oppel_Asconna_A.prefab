@@ -361,7 +361,7 @@ GameObject:
   m_Component:
   - component: {fileID: 624239831668995526}
   m_Layer: 0
-  m_Name: CarBody_12
+  m_Name: CarBody
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -744,6 +744,7 @@ MonoBehaviour:
   GroundLayers:
     serializedVersion: 2
     m_Bits: 32563
+  showcaseMode: 0
   m_CheckpointCounter: 0
 --- !u!114 &4895846115232909981
 MonoBehaviour:
