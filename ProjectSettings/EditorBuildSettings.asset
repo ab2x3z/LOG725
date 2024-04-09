@@ -6,7 +6,7 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Karting/Scenes/IntroMenu.unity
+    path: Assets/Karting/Scenes/Unused_IntroMenu.unity
     guid: d29260d8d84c94bd7ac95807b3da99d4
   - enabled: 1
     path: Assets/Karting/Scenes/MainScene.unity

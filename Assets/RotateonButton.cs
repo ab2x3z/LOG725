@@ -16,6 +16,14 @@ public class RotateonButton : MonoBehaviour
         }
     }
 
+    public void StartRotationAndDescentInverted()
+    {
+        if (!isRotating) // Vérifier si la caméra n'est pas déjà en train de tourner et descendre
+        {
+            StartCoroutine(RotateAndDescendCamera(-100.0f, -descentAmount, duration));
+        }
+    }
+
     // Exécuter la coroutine pour tourner et descendre la caméra
     IEnumerator RotateAndDescendCamera(float angle, float descent, float duration)
     {
