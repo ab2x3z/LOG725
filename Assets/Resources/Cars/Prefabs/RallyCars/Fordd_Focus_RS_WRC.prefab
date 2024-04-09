@@ -590,7 +590,6 @@ GameObject:
   - component: {fileID: 4895846115232909981}
   - component: {fileID: 4895846115232909958}
   - component: {fileID: 4895846115232909976}
-  - component: {fileID: 3874656388677227822}
   m_Layer: 2
   m_Name: Fordd_Focus_RS_WRC
   m_TagString: Player
@@ -771,19 +770,6 @@ MonoBehaviour:
   TurnInputName: Horizontal
   AccelerateButtonName: Accelerate
   BrakeButtonName: Brake
---- !u!114 &3874656388677227822
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 4895846115232909980}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c8534e17a0f90604c9afd4f5c73d829f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Id: f2bd8ddb-bbd9-4f79-a1cd-10b33bb9902d
 --- !u!1 &4895846115356922113
 GameObject:
   m_ObjectHideFlags: 0
