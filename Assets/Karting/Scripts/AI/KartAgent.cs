@@ -39,8 +39,6 @@ namespace KartGame.AI
 #region Training Modes
         [Tooltip("Are we training the agent or is the agent production ready?")]
         public AgentMode Mode = AgentMode.Training;
-        [Tooltip("What is the initial checkpoint the agent will go to? This value is only for inferencing.")]
-        public ushort InitCheckpointIndex;
 
 #endregion
 
@@ -54,8 +52,6 @@ namespace KartGame.AI
         public GameObject CheckpointsList;
 
         private Collider[] Colliders = new Collider[0];
-        [Tooltip("What layer are the checkpoints on? This should be an exclusive layer for the agent to use.")]
-        public LayerMask CheckpointMask;
 
         [Space]
         [Tooltip("Would the agent need a custom transform to be able to raycast and hit the track? " +
@@ -99,7 +95,6 @@ namespace KartGame.AI
         bool m_Acceleration;
         bool m_Brake;
         float m_Steering;
-        int m_CheckpointIndex;
 
         bool m_EndEpisode;
         float m_LastAccumulatedReward;
@@ -109,6 +104,7 @@ namespace KartGame.AI
         void Awake()
         {
             m_Kart = GetComponent<ArcadeKart>();
+            ArcadeKart.GoodCPSignal += HandleGoodCPSignal;
             if (AgentSensorTransform == null) AgentSensorTransform = transform;
             m_CooldownCheckSensors = -1.0f;
 
@@ -127,9 +123,6 @@ namespace KartGame.AI
         {
             // If the agent is training, then at the start of the simulation, pick a random checkpoint to train the agent.
             OnEpisodeBegin();
-
-            if (Mode == AgentMode.Inferencing) m_CheckpointIndex = InitCheckpointIndex % (Colliders.Length);
-            //Debug.Log($"Agent is starting at checkpoint {m_CheckpointIndex}");
         }
 
         void Update()
@@ -150,69 +143,16 @@ namespace KartGame.AI
            
         }
 
-        void OnTriggerEnter(Collider other)
+        void HandleGoodCPSignal()
         {
-            var maskedValue = 1 << other.gameObject.layer;
-            var triggered = maskedValue & CheckpointMask;
-
-            bool goodCp = false;
-            bool badCp = false;
-
-            FindCheckpointIndex(other, out var index);
-            //Edge cases first and last checkpoint
-            if (index == 0 && m_CheckpointIndex == (Colliders.Length - 1) )
-            {
-                goodCp = true;
-            } if (index == (Colliders.Length - 1) && m_CheckpointIndex == 0)
-            {
-                badCp = true;
-            }
-
-                // Ensure that the agent touched the checkpoint and the new index is greater than the m_CheckpointIndex.
-            if (triggered > 0 && !badCp &&  index > m_CheckpointIndex || goodCp)
-            {
-                if (!(m_CheckpointIndex == index - 1) && !(goodCp)) {
-                    Transform checkpoint;
-                    // Reset the agent back to its last known agent checkpoint
-                    if (m_CheckpointIndex < Colliders.Length && m_CheckpointIndex >= 0)
-                    {
-                        checkpoint = Colliders[m_CheckpointIndex].transform;
-                    }
-                    else
-                    {
-                        checkpoint = Colliders[0].transform;
-                    }
-                    transform.localRotation = checkpoint.rotation;
-                    transform.position = checkpoint.position;
-                    m_Kart.Rigidbody.velocity = default;
-                    m_Steering = 0f;
-                    m_Acceleration = m_Brake = false;
-                } else
-                {
-                    AddReward(PassCheckpointReward);
-                    m_CheckpointIndex = index;
-                    //Debug.Log($"Agent passed good cp");
-                }
-            } else if (triggered > 0 && !goodCp && index < m_CheckpointIndex || badCp)
-            {
-                m_CheckpointIndex = index;
-                AddReward(FailCheckpointPenalty);
-                //Debug.Log($"Agent passed wrong cp : {m_LastAccumulatedReward}");
-            }
+            AddReward(PassCheckpointReward);
         }
 
-        void FindCheckpointIndex(Collider checkPoint, out int index)
+        void OnDestroy()
         {
-            for (int i = 0; i < Colliders.Length; i++)
-            {
-                if (Colliders[i].GetInstanceID() == checkPoint.GetInstanceID())
-                {
-                    index = i;
-                    return;
-                }
-            }
-            index = -1;
+            ArcadeKart.GoodCPSignal -= HandleGoodCPSignal;
         }
+
 
         float Sign(float value)
         {
@@ -234,7 +174,7 @@ namespace KartGame.AI
             // Add an observation for direction of the agent to the next checkpoint.
             if(Colliders != null && Colliders.Length > 0)
             {
-                var next = (Colliders.Length != 0) ? (m_CheckpointIndex + 1) % (Colliders.Length-1) : 0;
+                var next = (Colliders.Length != 0) ? (m_Kart.m_CheckpointIndex + 1) % (Colliders.Length-1) : 0;
                 var nextCollider = Colliders[next];
                 if (nextCollider == null)
                     return;
@@ -296,7 +236,7 @@ namespace KartGame.AI
             // Find the next checkpoint when registering the current checkpoint that the agent has passed.
             if (Colliders.Length > 0 && !(Mathf.Abs(m_Kart.Rigidbody.velocity.magnitude - 0f) < EPSILON))
             {
-                var next = (m_CheckpointIndex + 1) % Colliders.Length;
+                var next = (m_Kart.m_CheckpointIndex + 1) % Colliders.Length;
                 var nextCollider = Colliders[next];
                 var direction = (nextCollider.transform.position - m_Kart.transform.position).normalized;
                 var reward = Vector3.Dot(m_Kart.Rigidbody.velocity.normalized, direction);
@@ -310,29 +250,6 @@ namespace KartGame.AI
                 //Debug.Log($"Agent is moving : {reward * TowardsCheckpointReward}");
 
             }
-            // We want to place the agent back on the track if the agent happens to launch itself outside of the track.
-            if (Physics.Raycast(transform.position + Vector3.up, Vector3.down, out var hit, GroundCastDistance, TrackMask)
-                && ((1 << hit.collider.gameObject.layer) & OutOfBoundsMask) > 0)
-            {
-                Transform checkpoint;
-                //Debug.Log("Agent is out of bounds. Resetting agent...");
-                // Reset the agent back to its last known agent checkpoint
-                if (m_CheckpointIndex < Colliders.Length && m_CheckpointIndex >= 0)
-                {
-                    checkpoint = Colliders[m_CheckpointIndex].transform;
-                }
-                else
-                {
-                    checkpoint = Colliders[0].transform;
-                }
-                transform.localRotation = checkpoint.rotation;
-                transform.position = checkpoint.position;
-                m_Kart.Rigidbody.velocity = default;
-                m_Steering = 0f;
-                m_Acceleration = m_Brake = false;
-                AddReward(OOBPenalty);
-                //Debug.Log($"Agent went off : {m_LastAccumulatedReward}");
-            }
         }
 
         public override void OnEpisodeBegin()
@@ -340,8 +257,8 @@ namespace KartGame.AI
             switch (Mode)
             {
                 case AgentMode.Training:
-                    m_CheckpointIndex = Random.Range(0, Colliders.Length - 1);
-                    var collider = Colliders[m_CheckpointIndex];
+                    m_Kart.m_CheckpointIndex = Random.Range(0, Colliders.Length - 1);
+                    var collider = Colliders[m_Kart.m_CheckpointIndex];
                     transform.localRotation = collider.transform.rotation;
                     transform.position = collider.transform.position;
                     m_Kart.Rigidbody.velocity = default;

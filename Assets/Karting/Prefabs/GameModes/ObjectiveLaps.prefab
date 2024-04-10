@@ -10,7 +10,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1902712905063461279}
   - component: {fileID: 3368944771209025263}
-  - component: {fileID: 1902712905063461278}
   m_Layer: 0
   m_Name: ObjectiveLaps
   m_TagString: Untagged
@@ -53,22 +52,6 @@ MonoBehaviour:
   delayVisible: 0
   isTimed: 0
   totalTimeInSecs: 100
-  displayMessage: {fileID: 1902712905063461278}
+  displayMessage: {fileID: 0}
   lapsToComplete: 3
   notificationLapsRemainingThreshold: 1
---- !u!114 &1902712905063461278
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1902712905063461265}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ea4170175d245c6409bb0cb4cc7b2c5f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  message: Complete all the laps
-  messagePrefab: {fileID: 11400000, guid: 4f09a4fe2b79f494cb4b65e27102ddd2, type: 2}
-  delayBeforeShowing: 3
-  autoDisplayOnAwake: 0

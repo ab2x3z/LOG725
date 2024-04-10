@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine.VFX;
 using Cinemachine;
 using UnityEditor.Search;
+using Unity.Plastic.Antlr3.Runtime;
 
 namespace KartGame.KartSystems
 {
@@ -199,9 +200,15 @@ namespace KartGame.KartSystems
         bool m_InAir = false;
 
         //Checkpoint counter for position estimation
-        public int m_CheckpointCounter;
+        public int m_CheckpointIndex;
+        public int m_CheckpointCounter = 0;
+        [Tooltip("What is the index of the first checkpoint the agent will *go* through?")]
+        public int InitCheckpointIndex = 0;
+        // Systeme de signal pr passer a la fct de reward de KartAgent
+        public delegate void GoodCPAction();
+        public static event GoodCPAction GoodCPSignal;
 
-        public void IncrementCheckpointCounter() => m_CheckpointCounter++;
+
         public int GetCheckpointCount() => m_CheckpointCounter;
 
         public void AddPowerup(StatPowerup statPowerup) => m_ActivePowerupList.Add(statPowerup);
@@ -260,7 +267,6 @@ namespace KartGame.KartSystems
             { // not meant to be played, we don't care about anything but the model and the stats
                 return;
             }
-            m_CheckpointCounter = 0;
             if (CheckpointsList == null)
             {
                 CheckpointsList = GameObject.Find("Checkpoints");
@@ -270,6 +276,7 @@ namespace KartGame.KartSystems
             {
                 Colliders[i] = CheckpointsList.transform.GetChild(i).GetComponent<Collider>();
             }
+            m_CheckpointIndex = (InitCheckpointIndex + Colliders.Length - 1) % (Colliders.Length);
 
             Rigidbody = GetComponent<Rigidbody>();
             m_Inputs = GetComponents<IInput>();
@@ -320,17 +327,15 @@ namespace KartGame.KartSystems
 
         void CheckIfOOB()
         {
-            //get the transform of the object that is the parent of this script
-
-
-            // We want to place the agent back on the track if the agent happens to launch itself outside of the track.
+                        // We want to place the agent back on the track if the agent happens to launch itself outside of the track.
             if (Physics.Raycast(transform.position + Vector3.up, Vector3.down, out var hit, GroundCastDistance, TrackMask)
                 && ((1 << hit.collider.gameObject.layer) & OutOfBoundsMask) > 0)
             {
+                //get the transform of the object that is the parent of this script
                 Transform checkpoint;
                 //Debug.Log("Agent is out of bounds. Resetting agent...");
                 // Reset the agent back to its last known agent checkpoint
-                checkpoint = Colliders[m_CheckpointCounter % Colliders.Length].transform;
+                checkpoint = Colliders[m_CheckpointIndex].transform;
                 transform.localRotation = checkpoint.rotation;
                 transform.position = checkpoint.position;
                 Rigidbody.velocity = default;
@@ -477,6 +482,69 @@ namespace KartGame.KartSystems
             }
         }
         void OnCollisionExit(Collision collision) => m_HasCollision = false;
+
+        void OnTriggerEnter(Collider other)
+        {
+            var maskedValue = 1 << other.gameObject.layer;
+            var triggered = maskedValue & LayerMask.GetMask("Checkpoint");
+
+            bool goodCp = false;
+            bool badCp = false;
+
+            FindCheckpointIndex(other, out var index);
+            //Edge cases first and last checkpoint
+            if (index == 0 && m_CheckpointIndex == (Colliders.Length - 1))
+            {
+                goodCp = true;
+            }
+            if (index == (Colliders.Length - 1) && m_CheckpointIndex == 0)
+            {
+                badCp = true;
+            }
+
+            // Ensure that the kart touched the checkpoint and the new index is greater than the m_CheckpointIndex.
+            if (triggered > 0 && !badCp && index > m_CheckpointIndex || goodCp)
+            {
+                if (!(m_CheckpointIndex == index - 1) && !(goodCp))
+                {
+                    Transform checkpoint = Colliders[m_CheckpointIndex].transform;
+                    transform.localRotation = checkpoint.rotation;
+                    transform.position = checkpoint.position;
+                    Rigidbody.velocity = default;
+                }
+                else
+                {
+                    m_CheckpointIndex = index;
+                    m_CheckpointCounter++;
+                    // Emit un signal pour passer a la fct de reward de KartAgent
+                    GoodCPSignal?.Invoke();
+
+                    //Debug.Log($"Agent passed good cp");
+                }
+            }
+            else if (triggered > 0 && !goodCp && index < m_CheckpointIndex || badCp)
+            {
+                Transform checkpoint = Colliders[m_CheckpointIndex].transform;
+                transform.localRotation = checkpoint.rotation;
+                transform.position = checkpoint.position;
+                Rigidbody.velocity = default;
+                //Debug.Log($"Agent passed wrong cp : {m_LastAccumulatedReward}");
+            }
+        }
+
+        void FindCheckpointIndex(Collider checkPoint, out int index)
+        {
+            for (int i = 0; i < Colliders.Length; i++)
+            {
+                if (Colliders[i].GetInstanceID() == checkPoint.GetInstanceID())
+                {
+                    index = i;
+                    return;
+                }
+            }
+            index = -1;
+        }
+
 
         void MoveVehicle(bool accelerate, bool brake, float turnInput)
         {

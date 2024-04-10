@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using KartGame.KartSystems;
 using UnityEngine;
 
-public class cameraFollow : MonoBehaviour
+public class CameraFollow : MonoBehaviour
 {
 
     Vector3 offset;

@@ -65,6 +65,7 @@ public class PositionManager : MonoBehaviour
 
     float ProjectPositionBetweenCheckpoints(ArcadeKart car)
     {
+        //When we pass checkpoint 0, we are at count = 1, so we need to subtract 1 to get the correct index
         int currentCheckpointIndex = (car.GetCheckpointCount() + checkpoints.Length - 1) % checkpoints.Length;
         int nextCheckpointIndex = (currentCheckpointIndex + 1) % checkpoints.Length;
 
