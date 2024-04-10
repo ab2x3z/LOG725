@@ -28,7 +28,6 @@ public class ObjectiveCompleteLaps : Objective
 
     IEnumerator Start()
     {
-        TimeManager.OnSetTime(totalTimeInSecs, isTimed, gameMode);
         TimeDisplay.OnSetLaps(lapsToComplete);
         yield return new WaitForEndOfFrame();
         Register();
