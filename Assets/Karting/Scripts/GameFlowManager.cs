@@ -4,13 +4,14 @@ using UnityEngine.Playables;
 using KartGame.KartSystems;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-
-
+using KartGame.Track;
 
 public enum GameState{Play, Won, Lost}
 
 public class GameFlowManager : MonoBehaviour
 {
+    const int MAX_CAR_AVAILABLE = 20;
+
     [Header("Parameters")]
     [Tooltip("Duration of the fade-to-black at the end of the game")]
     public float endSceneLoadDelay = 3f;
@@ -53,7 +54,7 @@ public class GameFlowManager : MonoBehaviour
 
     ArcadeKart[] karts;
     ObjectiveManager m_ObjectiveManager;
-    TimeManager m_TimeManager;
+    TimeDisplay m_TimeDisplay;
     float m_TimeLoadEndGameScene;
     string m_SceneToLoad;
     float elapsedTimeBeforeEndScene = 0;
@@ -84,15 +85,14 @@ public class GameFlowManager : MonoBehaviour
         m_ObjectiveManager = FindObjectOfType<ObjectiveManager>();
 		DebugUtility.HandleErrorIfNullFindObject<ObjectiveManager, GameFlowManager>(m_ObjectiveManager, this);
 
-        m_TimeManager = FindObjectOfType<TimeManager>();
-        DebugUtility.HandleErrorIfNullFindObject<TimeManager, GameFlowManager>(m_TimeManager, this);
+        m_TimeDisplay = FindObjectOfType<TimeDisplay>();
+        DebugUtility.HandleErrorIfNullFindObject<TimeDisplay, GameFlowManager>(m_TimeDisplay, this);
 
         AudioUtility.SetMasterVolume(1);
 
         winDisplayMessage.gameObject.SetActive(false);
         loseDisplayMessage.gameObject.SetActive(false);
 
-        m_TimeManager.StopRace();
         foreach (ArcadeKart k in karts)
         {
 			k.SetCanMove(false);
@@ -120,7 +120,6 @@ public class GameFlowManager : MonoBehaviour
         {
 			k.SetCanMove(true);
         }
-        m_TimeManager.StartRace();
     }
 
     void ShowRaceCountdownAnimation() {
@@ -168,7 +167,7 @@ public class GameFlowManager : MonoBehaviour
             if (m_ObjectiveManager.AreAllObjectivesCompleted() && positionManager.IsPlayerFirst())
                 EndGame(true);
 
-            if (m_TimeManager.IsFinite && m_TimeManager.IsOver || (m_ObjectiveManager.AreAllObjectivesCompleted() && !positionManager.IsPlayerFirst()))
+            if (m_ObjectiveManager.AreAllObjectivesCompleted() && !positionManager.IsPlayerFirst())
                 EndGame(false);
         }
     }
@@ -182,8 +181,23 @@ public class GameFlowManager : MonoBehaviour
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
 
-        m_TimeManager.StopRace();
+        // Save best position if it's a new record
+        int playerPosition = positionManager.GetPlayerPosition();
+        if (PlayerPrefs.GetInt("BestPosition_" + SceneManager.GetActiveScene().name, int.MaxValue) > playerPosition)  { 
+            PlayerPrefs.SetInt("BestPosition_" + SceneManager.GetActiveScene().name, playerPosition);
+        }
+        // Save best time if it's a new record
+        if (PlayerPrefs.GetFloat("BestTime_" + SceneManager.GetActiveScene().name, float.MaxValue) > m_TimeDisplay.GetRaceLapTime())
+        {
+            PlayerPrefs.SetFloat("BestTime_" + SceneManager.GetActiveScene().name, m_TimeDisplay.GetRaceLapTime());
+            PlayerPrefs.SetString("BestTimePlayer_" + SceneManager.GetActiveScene().name, playerKart.gameObject.name); //TODO
+            PlayerPrefs.SetString("BestTimeReadable_" + SceneManager.GetActiveScene().name, m_TimeDisplay.GetRaceLapTime_Readable());
+        }
 
+        if (win && PlayerPrefs.GetInt("UnlockedCars", 5) < MAX_CAR_AVAILABLE)
+        {
+            PlayerPrefs.SetInt("UnlockedCars", PlayerPrefs.GetInt("UnlockedCars", 5) + 1);
+        }
 
         // Remember that we need to load the appropriate end scene after a delay
         gameState = win ? GameState.Won : GameState.Lost;

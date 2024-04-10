@@ -39,6 +39,12 @@ namespace Karting.Scenes.SelectorSceneAssets
             SceneManager.LoadSceneAsync(trackName);
             
         }
+
+        public void ReloadScene()
+        {
+            Time.timeScale = 1; //unfreeze game from pause
+            SceneManager.LoadScene(SceneManager.GetActiveScene().name);
+        }
     
         // Update is called once per frame
         void Update()

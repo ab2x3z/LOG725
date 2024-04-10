@@ -154,5 +154,25 @@ namespace KartGame.Track
             if (bestLap < 0) return "";
             return getTimeString(finishedLapTimes[bestLap]);
         }
+
+        public string GetRaceLapTime_Readable()
+        {
+            float raceTime = 0;
+            foreach (float lapTime in finishedLapTimes)
+            {
+                raceTime += lapTime;
+            }
+            return getTimeString(raceTime);
+        }
+
+        public float GetRaceLapTime()
+        {
+            float raceTime = 0;
+            foreach (float lapTime in finishedLapTimes)
+            {
+                raceTime += lapTime;
+            }
+            return raceTime;
+        }
     }
 }
