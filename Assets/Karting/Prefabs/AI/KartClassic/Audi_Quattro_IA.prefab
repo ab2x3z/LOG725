@@ -649,7 +649,9 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 32563
   showcaseMode: 0
+  m_CheckpointIndex: 0
   m_CheckpointCounter: 0
+  InitCheckpointIndex: 0
 --- !u!114 &5140976015725139547
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -738,7 +740,6 @@ MonoBehaviour:
   hasUpgradedFromAgentParameters: 1
   MaxStep: 20000
   Mode: 1
-  InitCheckpointIndex: 27
   Mask:
     serializedVersion: 2
     m_Bits: 3585
@@ -771,9 +772,6 @@ MonoBehaviour:
     RayDistance: 12.5
     HitValidationDistance: 1.7
   CheckpointsList: {fileID: 0}
-  CheckpointMask:
-    serializedVersion: 2
-    m_Bits: 16384
   AgentSensorTransform: {fileID: 4083494458582341633}
   HitPenalty: -1
   PassCheckpointReward: 1
@@ -812,7 +810,7 @@ MonoBehaviour:
     VectorActionDescriptions: []
     VectorActionSpaceType: 0
     hasUpgradedBrainParametersWithActionSpec: 1
-  m_Model: {fileID: 5022602860645237092, guid: 16c83c1ec9b0f9945a246046da6db78d, type: 3}
+  m_Model: {fileID: 5022602860645237092, guid: cddcd69fa698c7f43917e279072c2605, type: 3}
   m_InferenceDevice: 1
   m_BehaviorType: 0
   m_BehaviorName: kart

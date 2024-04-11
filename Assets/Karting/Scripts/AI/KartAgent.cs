@@ -265,7 +265,7 @@ namespace KartGame.AI
                     m_Acceleration = false;
                     m_Brake = false;
                     m_Steering = 0f;
-                    m_CooldownCheckSensors = 0.2f;
+                    m_CooldownCheckSensors = 0.0f;
                     break;
                 default:
                     break;

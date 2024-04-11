@@ -19,11 +19,14 @@ public class CameraFollow : MonoBehaviour
 
         offset = new Vector3(0.0f, transform.position.y, 0.0f);
         transform.position = player.transform.position + offset;
+        //change rotation on X and Z axis
+        transform.rotation = Quaternion.Euler(player.transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, player.transform.rotation.eulerAngles.z);
     }
 
     // Update is called once per frame
     void Update()
     {
-        transform.position = player.transform.position + offset;   
+        transform.position = player.transform.position + offset;
+        transform.rotation = Quaternion.Euler(player.transform.rotation.eulerAngles.x, transform.rotation.eulerAngles.y, player.transform.rotation.eulerAngles.z);
     }
 }
